@@ -66,10 +66,10 @@ You can also do the steps separately.
 ## Role Variables
 
 ### Role Parameters
-| Variable      | Type    | Default Value               | Description                                                     |
-| ------------- | ------- | --------------------------- | --------------------------------------------------------------- |
-| `cleanup`     | boolean | `false`                     | Delete all resources created by the role at the end of the run. |
-| `working_dir` | string  | `/tmp/hsm-prep-working-dir` | Working directory to store artifacts.                           |
+| Variable      | Type    | Default Value | Description                                                                 |
+| ------------- | ------- | ------------- | --------------------------------------------------------------------------- |
+| `cleanup`     | boolean | `true`        | Delete staging artifacts created by the role (runs in an `always` block).   |
+| `working_dir` | string  | `""` (empty)  | Staging directory. Empty allocates a private tempfile (`0700`). If set, the path must not already exist. |
 
 ### Image Generation Variables
 | Variable                        | Type    | Default Value                                              | Description                                                 |

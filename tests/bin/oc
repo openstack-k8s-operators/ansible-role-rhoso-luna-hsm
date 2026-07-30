@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+LOGDIR="${FAKE_OC_LOGDIR:-/home/alee/code1/agentic-openstack-sdlc/repos/openstack-k8s-operators/ansible-role-rhoso-luna-hsm/tests/.fake-oc-log}"
+mkdir -p "$LOGDIR"
+printf '%s\n' "$*" >>"$LOGDIR/cmds.log"
+if [[ "${1:-}" == "apply" && "${2:-}" == "-f" && "${3:-}" == "-" ]]; then
+  cat >"$LOGDIR/apply-$(wc -l <"$LOGDIR/cmds.log").yml"
+  echo "secret/fake-applied configured"
+  exit 0
+fi
+echo "fake-oc: unhandled args: $*" >&2
+exit 1

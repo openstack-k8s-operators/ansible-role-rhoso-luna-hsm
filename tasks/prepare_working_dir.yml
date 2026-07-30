@@ -1,0 +1,58 @@
+---
+# Copyright Red Hat, Inc.
+# All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+
+# Ensure working_dir is a caller-owned private directory (mode 0700).
+# When unset/empty, allocate a unique tempfile directory to avoid predictable
+# /tmp paths and symlink/pre-creation attacks.
+
+- name: Reset per-include allocation flag
+  ansible.builtin.set_fact:
+    _hsm_prepare_allocated: false
+
+- name: Allocate a private temporary working directory
+  when: working_dir | default('') | length == 0
+  block:
+    - name: Create temporary directory
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: rhoso-luna-hsm-
+      register: _hsm_tmpdir
+
+    - name: Record allocated working_dir
+      ansible.builtin.set_fact:
+        working_dir: "{{ _hsm_tmpdir.path }}"
+        _hsm_prepare_allocated: true
+
+- name: Stat working_dir
+  ansible.builtin.stat:
+    path: "{{ working_dir }}"
+  register: _hsm_working_dir_stat
+
+- name: Fail when caller-provided working_dir already exists
+  when:
+    - not (_hsm_prepare_allocated | bool)
+    - _hsm_working_dir_stat.stat.exists | default(false)
+  ansible.builtin.fail:
+    msg: >-
+      working_dir '{{ working_dir }}' already exists. Refusing to reuse a
+      pre-existing path (possible symlink or ownership attack). Unset
+      working_dir to auto-allocate a private tempfile, or choose a new path.
+
+- name: Ensure private working_dir exists
+  ansible.builtin.file:
+    path: "{{ working_dir }}"
+    state: directory
+    mode: "0700"

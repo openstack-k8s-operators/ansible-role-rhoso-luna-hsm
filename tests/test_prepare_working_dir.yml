@@ -1,0 +1,97 @@
+---
+# Tier-2 tests for prepare_working_dir.yml (no HSM / no cluster).
+- name: Auto-allocate private tempfile working_dir
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    working_dir: ""
+  tasks:
+    - name: Run prepare_working_dir
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/prepare_working_dir.yml"
+
+    - name: Assert working_dir was set
+      ansible.builtin.assert:
+        that:
+          - working_dir | length > 0
+          - working_dir is match('.*rhoso-luna-hsm-.*')
+
+    - name: Stat allocated working_dir
+      ansible.builtin.stat:
+        path: "{{ working_dir }}"
+      register: wd
+
+    - name: Assert mode 0700 and directory
+      ansible.builtin.assert:
+        that:
+          - wd.stat.exists
+          - wd.stat.isdir
+          - wd.stat.mode == '0700'
+
+    - name: Cleanup allocated dir
+      ansible.builtin.file:
+        path: "{{ working_dir }}"
+        state: absent
+
+- name: Reject pre-existing caller-provided working_dir
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    working_dir: "/tmp/rhoso-luna-hsm-preexist-test"
+  tasks:
+    - name: Create pre-existing path
+      ansible.builtin.file:
+        path: "{{ working_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Expect prepare_working_dir to fail
+      block:
+        - name: Run prepare_working_dir
+          ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/prepare_working_dir.yml"
+        - name: Should not reach here
+          ansible.builtin.fail:
+            msg: "prepare_working_dir should have failed for pre-existing path"
+      rescue:
+        - name: Assert failure message mentions pre-existing
+          ansible.builtin.assert:
+            that:
+              - "'already exists' in ansible_failed_result.msg | default('')"
+
+    - name: Cleanup pre-existing path
+      ansible.builtin.file:
+        path: "{{ working_dir }}"
+        state: absent
+
+- name: Create new caller-provided working_dir with 0700
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    working_dir: "/tmp/rhoso-luna-hsm-newpath-test"
+  tasks:
+    - name: Ensure path absent
+      ansible.builtin.file:
+        path: "{{ working_dir }}"
+        state: absent
+
+    - name: Run prepare_working_dir
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/prepare_working_dir.yml"
+
+    - name: Stat new working_dir
+      ansible.builtin.stat:
+        path: "{{ working_dir }}"
+      register: wd
+
+    - name: Assert mode 0700
+      ansible.builtin.assert:
+        that:
+          - wd.stat.exists
+          - wd.stat.isdir
+          - wd.stat.mode == '0700'
+
+    - name: Cleanup
+      ansible.builtin.file:
+        path: "{{ working_dir }}"
+        state: absent
