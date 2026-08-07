@@ -76,7 +76,9 @@ You can also do the steps separately.
 | ------------------------------- | ------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
 | `barbican_src_image_registry`   | string  | `quay.io`                                                  | Registry used to pull down the Barbican images              |
 | `barbican_src_image_namespace`  | string  | `podified-antelope-centos9`                                | Registry namespace for the Barbican images                  |
-| `barbican_src_image_tag`        | string  | `current-podified`                                         | Tag used to identify the source images                      |
+| `barbican_src_image_tag`        | string  | `current-podified`                                         | Tag used when digests are unset                             |
+| `barbican_src_api_image_digest` | string  | `""` (empty)                                               | Optional `sha256:<hex>` (or bare hex) to pin the API image  |
+| `barbican_src_worker_image_digest` | string | `""` (empty)                                            | Optional `sha256:<hex>` (or bare hex) to pin the Worker image |
 | `barbican_dest_image_registry`  | string  | `quay.io`                                                  | Registry used to push the modified images                   |
 | `barbican_dest_image_namespace` | string  | `podified-antelope-centos9`                                | Registry namespace for the modified images                  |
 | `barbican_dest_image_tag`       | string  | `current-podified-luna`                                    | Tag used to identify the modified images                    |

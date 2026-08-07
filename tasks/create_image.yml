@@ -59,6 +59,8 @@
         BARBICAN_SRC_IMAGE_REGISTRY: "{{ barbican_src_image_registry }}"
         BARBICAN_SRC_IMAGE_NAMESPACE: "{{ barbican_src_image_namespace }}"
         BARBICAN_SRC_IMAGE_TAG: "{{ barbican_src_image_tag }}"
+        BARBICAN_SRC_API_IMAGE_DIGEST: "{{ barbican_src_api_image_digest }}"
+        BARBICAN_SRC_WORKER_IMAGE_DIGEST: "{{ barbican_src_worker_image_digest }}"
         BARBICAN_DEST_IMAGE_REGISTRY: "{{ barbican_dest_image_registry }}"
         BARBICAN_DEST_IMAGE_NAMESPACE: "{{ barbican_dest_image_namespace }}"
         BARBICAN_DEST_IMAGE_TAG: "{{ barbican_dest_image_tag }}"

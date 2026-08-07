@@ -12,8 +12,28 @@ set -o pipefail
 BARBICAN_SRC_IMAGE_REGISTRY=${BARBICAN_SRC_IMAGE_REGISTRY:-"quay.io"}
 BARBICAN_SRC_IMAGE_NAMESPACE=${BARBICAN_SRC_IMAGE_NAMESPACE:-"podified-antelope-centos9"}
 BARBICAN_SRC_IMAGE_TAG=${BARBICAN_SRC_IMAGE_TAG:-"current-podified"}
-BARBICAN_SRC_API_IMAGE="$BARBICAN_SRC_IMAGE_REGISTRY/$BARBICAN_SRC_IMAGE_NAMESPACE/openstack-barbican-api:$BARBICAN_SRC_IMAGE_TAG"
-BARBICAN_SRC_WORKER_IMAGE="$BARBICAN_SRC_IMAGE_REGISTRY/$BARBICAN_SRC_IMAGE_NAMESPACE/openstack-barbican-worker:$BARBICAN_SRC_IMAGE_TAG"
+# Optional digests (sha256:<hex> or bare hex). When set, pin by digest instead of tag.
+BARBICAN_SRC_API_IMAGE_DIGEST=${BARBICAN_SRC_API_IMAGE_DIGEST:-""}
+BARBICAN_SRC_WORKER_IMAGE_DIGEST=${BARBICAN_SRC_WORKER_IMAGE_DIGEST:-""}
+
+# Build registry/namespace/name:tag or registry/namespace/name@sha256:...
+src_image_ref() {
+  local name="$1"
+  local digest="$2"
+  local base="$BARBICAN_SRC_IMAGE_REGISTRY/$BARBICAN_SRC_IMAGE_NAMESPACE/$name"
+  if [[ -n "$digest" ]]; then
+    if [[ "$digest" == sha256:* ]]; then
+      echo "${base}@${digest}"
+    else
+      echo "${base}@sha256:${digest}"
+    fi
+  else
+    echo "${base}:$BARBICAN_SRC_IMAGE_TAG"
+  fi
+}
+
+BARBICAN_SRC_API_IMAGE="$(src_image_ref openstack-barbican-api "$BARBICAN_SRC_API_IMAGE_DIGEST")"
+BARBICAN_SRC_WORKER_IMAGE="$(src_image_ref openstack-barbican-worker "$BARBICAN_SRC_WORKER_IMAGE_DIGEST")"
 
 BARBICAN_DEST_IMAGE_REGISTRY=${BARBICAN_DEST_IMAGE_REGISTRY:-"quay.io"}
 BARBICAN_DEST_IMAGE_NAMESPACE=${BARBICAN_DEST_IMAGE_NAMESPACE:-"podified-antelope-centos9"}
