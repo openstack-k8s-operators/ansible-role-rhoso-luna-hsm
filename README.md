@@ -31,7 +31,7 @@ software and required certificates and configuration files are stored locally un
         barbican_dest_image_namespace: "{{ your quay.io account name }}"
         luna_minclient_src: "file:///opt/luna/LunaClient-Minimal-10.7.2-16.x86_64.tar"
         luna_client_name: "{{ name used for client certificate }}"
-        luna_partition_password: "{{ password to log into luna partition }}"
+        luna_partition_password: "{{ lookup('env', 'LUNA_PARTITION_PASSWORD') }}"
         kubeconfig_path: "/path/to/.kube/config"
         oc_dir: "/path/to/oc/bin/dir/"
       roles:
@@ -54,7 +54,7 @@ You can also do the steps separately.
     - hosts: localhost
       vars:
         luna_client_name: "{{ name used for client certificate }}"
-        luna_partition_password: "{{ password to log into luna partition }}"
+        luna_partition_password: "{{ lookup('env', 'LUNA_PARTITION_PASSWORD') }}"
         kubeconfig_path: "/path/to/.kube/config"
         oc_dir: "/path/to/oc/bin/dir/"
       tasks:
@@ -100,3 +100,7 @@ You can also do the steps separately.
 | `luna_data_secret_namespace` | string | `openstack`                               | Namespace to be used when creating `luna_data_secret`                                         |
 | `login_secret`               | string | `hsm-login`                               | Name of the secret used to store the password to log into the HSM partition                   |
 | `login_secret_field`         | string | `PKCS11Pin`                               | Secret key used to store the `luna_partition_password` data in `login_secret`                 |
+
+> Security note: do not store `luna_partition_password` in plaintext vars files.
+> Use Ansible Vault or an environment lookup (for example,
+> `luna_partition_password: "{{ lookup('env', 'LUNA_PARTITION_PASSWORD') }}"`).
