@@ -31,7 +31,7 @@ software and required certificates and configuration files are stored locally un
         barbican_dest_image_namespace: "{{ your quay.io account name }}"
         luna_minclient_src: "file:///opt/luna/LunaClient-Minimal-10.7.2-16.x86_64.tar"
         luna_client_name: "{{ name used for client certificate }}"
-        luna_partition_password: "{{ password to log into luna partition }}"
+        luna_partition_password: "{{ lookup('env', 'LUNA_PARTITION_PASSWORD') }}"
         kubeconfig_path: "/path/to/.kube/config"
         oc_dir: "/path/to/oc/bin/dir/"
       roles:
@@ -54,7 +54,7 @@ You can also do the steps separately.
     - hosts: localhost
       vars:
         luna_client_name: "{{ name used for client certificate }}"
-        luna_partition_password: "{{ password to log into luna partition }}"
+        luna_partition_password: "{{ lookup('env', 'LUNA_PARTITION_PASSWORD') }}"
         kubeconfig_path: "/path/to/.kube/config"
         oc_dir: "/path/to/oc/bin/dir/"
       tasks:
@@ -66,17 +66,19 @@ You can also do the steps separately.
 ## Role Variables
 
 ### Role Parameters
-| Variable      | Type    | Default Value               | Description                                                     |
-| ------------- | ------- | --------------------------- | --------------------------------------------------------------- |
-| `cleanup`     | boolean | `false`                     | Delete all resources created by the role at the end of the run. |
-| `working_dir` | string  | `/tmp/hsm-prep-working-dir` | Working directory to store artifacts.                           |
+| Variable      | Type    | Default Value | Description                                                                 |
+| ------------- | ------- | ------------- | --------------------------------------------------------------------------- |
+| `cleanup`     | boolean | `true`        | Delete staging artifacts created by the role (runs in an `always` block).   |
+| `working_dir` | string  | `""` (empty)  | Staging directory. Empty allocates a private tempfile (`0700`). If set, the path must not already exist. |
 
 ### Image Generation Variables
 | Variable                        | Type    | Default Value                                              | Description                                                 |
 | ------------------------------- | ------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
 | `barbican_src_image_registry`   | string  | `quay.io`                                                  | Registry used to pull down the Barbican images              |
 | `barbican_src_image_namespace`  | string  | `podified-antelope-centos9`                                | Registry namespace for the Barbican images                  |
-| `barbican_src_image_tag`        | string  | `current-podified`                                         | Tag used to identify the source images                      |
+| `barbican_src_image_tag`        | string  | `current-podified`                                         | Tag used when digests are unset                             |
+| `barbican_src_api_image_digest` | string  | `""` (empty)                                               | Optional `sha256:<hex>` (or bare hex) to pin the API image  |
+| `barbican_src_worker_image_digest` | string | `""` (empty)                                            | Optional `sha256:<hex>` (or bare hex) to pin the Worker image |
 | `barbican_dest_image_registry`  | string  | `quay.io`                                                  | Registry used to push the modified images                   |
 | `barbican_dest_image_namespace` | string  | `podified-antelope-centos9`                                | Registry namespace for the modified images                  |
 | `barbican_dest_image_tag`       | string  | `current-podified-luna`                                    | Tag used to identify the modified images                    |
@@ -98,3 +100,7 @@ You can also do the steps separately.
 | `luna_data_secret_namespace` | string | `openstack`                               | Namespace to be used when creating `luna_data_secret`                                         |
 | `login_secret`               | string | `hsm-login`                               | Name of the secret used to store the password to log into the HSM partition                   |
 | `login_secret_field`         | string | `PKCS11Pin`                               | Secret key used to store the `luna_partition_password` data in `login_secret`                 |
+
+> Security note: do not store `luna_partition_password` in plaintext vars files.
+> Use Ansible Vault or an environment lookup (for example,
+> `luna_partition_password: "{{ lookup('env', 'LUNA_PARTITION_PASSWORD') }}"`).

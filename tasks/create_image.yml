@@ -14,60 +14,66 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-- name: Create working directories
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    recurse: true
-    mode: '755'
-  loop:
-    - "{{ working_dir }}"
-    - "{{ working_dir }}/bin"
-    - "{{ working_dir }}/client"
-    - "{{ working_dir }}/barbican_operator"
-
-- name: Extract luna software
+- name: Prepare Luna HSM image build
   block:
-    - name: Get the linux minimal client
-      ansible.builtin.get_url:
-        url: "{{ luna_minclient_src }}"
-        dest: "{{ working_dir }}/"
-        mode: "0600"
+    - name: Prepare private working directory
+      ansible.builtin.include_tasks: prepare_working_dir.yml
 
-    - name: Extract the minimal client
-      ansible.builtin.unarchive:
-        src: "{{ working_dir }}/{{ luna_minclient_src | basename }}"
-        dest: "{{ working_dir }}/client/"
-        extra_opts:
-          - "--strip"
-          - "1"
-
-- name: Download build tools
-  become: true
-  ansible.builtin.dnf:
-    name:
-      - buildah
-      - podman
-    state: present
-
-- name: Create and store new images
-  ansible.builtin.script: "image_add_luna_minimal_client.sh"
-  environment:
-    BARBICAN_SRC_IMAGE_REGISTRY: "{{ barbican_src_image_registry }}"
-    BARBICAN_SRC_IMAGE_NAMESPACE: "{{ barbican_src_image_namespace }}"
-    BARBICAN_SRC_IMAGE_TAG: "{{ barbican_src_image_tag }}"
-    BARBICAN_DEST_IMAGE_REGISTRY: "{{ barbican_dest_image_registry }}"
-    BARBICAN_DEST_IMAGE_NAMESPACE: "{{ barbican_dest_image_namespace }}"
-    BARBICAN_DEST_IMAGE_TAG: "{{ barbican_dest_image_tag }}"
-    LUNA_LINUX_MINIMAL_CLIENT_DIR: "{{ working_dir }}/client"
-    VERIFY_TLS: "{{ image_registry_verify_tls }}"
-
-- name: Perform cleanup tasks
-  when:
-    - cleanup | bool
-  block:
-    - name: Remove the working directory
-      become: true
+    - name: Create working directories
       ansible.builtin.file:
-        path: "{{ working_dir }}"
-        state: absent
+        path: "{{ item }}"
+        state: directory
+        mode: "0700"
+      loop:
+        - "{{ working_dir }}/bin"
+        - "{{ working_dir }}/client"
+        - "{{ working_dir }}/barbican_operator"
+
+    - name: Extract luna software
+      block:
+        - name: Get the linux minimal client
+          ansible.builtin.get_url:
+            url: "{{ luna_minclient_src }}"
+            dest: "{{ working_dir }}/"
+            mode: "0600"
+
+        - name: Extract the minimal client
+          ansible.builtin.unarchive:
+            src: "{{ working_dir }}/{{ luna_minclient_src | basename }}"
+            dest: "{{ working_dir }}/client/"
+            extra_opts:
+              - "--strip"
+              - "1"
+
+    - name: Download build tools
+      become: true
+      ansible.builtin.dnf:
+        name:
+          - buildah
+          - podman
+        state: present
+
+    - name: Create and store new images
+      ansible.builtin.script: "image_add_luna_minimal_client.sh"
+      environment:
+        BARBICAN_SRC_IMAGE_REGISTRY: "{{ barbican_src_image_registry }}"
+        BARBICAN_SRC_IMAGE_NAMESPACE: "{{ barbican_src_image_namespace }}"
+        BARBICAN_SRC_IMAGE_TAG: "{{ barbican_src_image_tag }}"
+        BARBICAN_SRC_API_IMAGE_DIGEST: "{{ barbican_src_api_image_digest }}"
+        BARBICAN_SRC_WORKER_IMAGE_DIGEST: "{{ barbican_src_worker_image_digest }}"
+        BARBICAN_DEST_IMAGE_REGISTRY: "{{ barbican_dest_image_registry }}"
+        BARBICAN_DEST_IMAGE_NAMESPACE: "{{ barbican_dest_image_namespace }}"
+        BARBICAN_DEST_IMAGE_TAG: "{{ barbican_dest_image_tag }}"
+        LUNA_LINUX_MINIMAL_CLIENT_DIR: "{{ working_dir }}/client"
+        VERIFY_TLS: "{{ image_registry_verify_tls }}"
+
+  always:
+    - name: Perform cleanup tasks
+      when: cleanup | bool
+      block:
+        - name: Remove the working directory
+          become: true
+          ansible.builtin.file:
+            path: "{{ working_dir }}"
+            state: absent
+          when: working_dir | default('') | length > 0

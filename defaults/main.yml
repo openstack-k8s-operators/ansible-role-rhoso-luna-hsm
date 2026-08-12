@@ -17,8 +17,12 @@
 # defaults file for the ansible-role-rhoso-luna-hsm role
 
 ### Role Parameters
-cleanup: false
-working_dir: "/tmp/hsm-prep-working-dir"
+# cleanup defaults to true so HSM PIN/key staging artifacts are removed after
+# a successful or failed run. Set cleanup=false to retain artifacts for debug.
+cleanup: true
+# Empty working_dir allocates a unique private tempfile (mode 0700) at runtime.
+# If set explicitly, the path must not already exist.
+working_dir: ""
 
 ### Luna Parameters
 luna_minclient_src: "file:///opt/luna/LunaClient-Minimal-10.7.2-16.x86_64.tar"
@@ -37,6 +41,10 @@ image_registry_verify_tls: true
 barbican_src_image_registry: "quay.io"
 barbican_src_image_namespace: "podified-antelope-centos9"
 barbican_src_image_tag: "current-podified"
+# Optional. When set (sha256:<hex> or bare hex), pin that image by digest
+# instead of barbican_src_image_tag. Leave empty to keep tag-based pulls.
+barbican_src_api_image_digest: ""
+barbican_src_worker_image_digest: ""
 barbican_dest_image_registry: "quay.io"
 barbican_dest_image_namespace: "podified-antelope-centos9"
 barbican_dest_image_tag: "current-podified-luna"
