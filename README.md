@@ -72,18 +72,22 @@ You can also do the steps separately.
 | `working_dir` | string  | `""` (empty)  | Staging directory. Empty allocates a private tempfile (`0700`). If set, the path must not already exist. |
 
 ### Image Generation Variables
-| Variable                        | Type    | Default Value                                              | Description                                                 |
-| ------------------------------- | ------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
-| `barbican_src_image_registry`   | string  | `quay.io`                                                  | Registry used to pull down the Barbican images              |
-| `barbican_src_image_namespace`  | string  | `podified-antelope-centos9`                                | Registry namespace for the Barbican images                  |
-| `barbican_src_image_tag`        | string  | `current-podified`                                         | Tag used when digests are unset                             |
-| `barbican_src_api_image_digest` | string  | `""` (empty)                                               | Optional `sha256:<hex>` (or bare hex) to pin the API image  |
-| `barbican_src_worker_image_digest` | string | `""` (empty)                                            | Optional `sha256:<hex>` (or bare hex) to pin the Worker image |
-| `barbican_dest_image_registry`  | string  | `quay.io`                                                  | Registry used to push the modified images                   |
-| `barbican_dest_image_namespace` | string  | `podified-antelope-centos9`                                | Registry namespace for the modified images                  |
-| `barbican_dest_image_tag`       | string  | `current-podified-luna`                                    | Tag used to identify the modified images                    |
-| `luna_minclient_src`            | string  | `file:///opt/luna/LunaClient-Minimal-10.7.2-16.x86_64.tar` | Location of the Luna Minimal Client tarball                 |
-| `image_registry_verify_tls`     | boolean | `true`                                                     | Use TLS verification when pushing/pulling images            |
+| Variable                           | Type    | Default Value                                              | Description                                                                 |
+| ---------------------------------- | ------- | ---------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `barbican_src_image_registry`      | string  | `quay.io`                                                  | Registry used to pull down the Barbican images                              |
+| `barbican_src_image_namespace`     | string  | `podified-antelope-centos9`                                | Registry namespace for the Barbican images                                  |
+| `barbican_src_image_tag`           | string  | `current-podified`                                         | Tag used when digests are unset                                             |
+| `barbican_src_api_image_name`      | string  | `openstack-barbican-api`                                   | Source image name for the Barbican API                                      |
+| `barbican_src_worker_image_name`   | string  | `openstack-barbican-worker`                                | Source image name for the Barbican Worker. Set to the API image name when a single shared image is published (for example S2I). |
+| `barbican_src_api_image_digest`    | string  | `""` (empty)                                               | Optional `sha256:<hex>` (or bare hex) to pin the API image                  |
+| `barbican_src_worker_image_digest` | string  | `""` (empty)                                               | Optional `sha256:<hex>` (or bare hex) to pin the Worker image               |
+| `barbican_dest_image_registry`     | string  | `quay.io`                                                  | Registry used to push the modified images                                   |
+| `barbican_dest_image_namespace`    | string  | `podified-antelope-centos9`                                | Registry namespace for the modified images                                  |
+| `barbican_dest_image_tag`          | string  | `current-podified-luna`                                    | Tag used to identify the modified images                                    |
+| `barbican_dest_api_image_name`     | string  | `openstack-barbican-api`                                   | Destination image name for the modified Barbican API                        |
+| `barbican_dest_worker_image_name`  | string  | `openstack-barbican-worker`                                | Destination image name for the modified Barbican Worker                     |
+| `luna_minclient_src`               | string  | `file:///opt/luna/LunaClient-Minimal-10.7.2-16.x86_64.tar` | Location of the Luna Minimal Client tarball                                 |
+| `image_registry_verify_tls`        | boolean | `true`                                                     | Use TLS verification when pushing/pulling images                            |
 
 ### Secret Generation Variables
 | Variable                     | Type   | Default Value                             | Description                                                                                   |
